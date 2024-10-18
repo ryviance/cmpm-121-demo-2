@@ -17,30 +17,68 @@ canvas.id = "myCanvas";
 appDiv.appendChild(canvas);
 
 const ctx = canvas.getContext("2d");
-let drawing = false;
 
-canvas.addEventListener("mousedown", (event) => {
-  drawing = true;
-  ctx.beginPath(); 
-  ctx.moveTo(event.offsetX, event.offsetY); 
-});
+if (ctx) {
+    let drawing = false;
+    let strokes: Array<Array<{ x: number; y: number }>> = []; 
+    let currentStroke: Array<{ x: number; y: number }> = []; 
 
-canvas.addEventListener("mousemove", (event) => {
-  if (drawing) {
-    ctx.lineTo(event.offsetX, event.offsetY); 
-    ctx.stroke(); 
-  }
-});
+    canvas.addEventListener("mousedown", (event) => {
+        drawing = true;
+        currentStroke = [{ x: event.offsetX, y: event.offsetY }]; 
+    });
 
-canvas.addEventListener("mouseup", () => {
-  drawing = false;
-  ctx.closePath(); 
-});
+    canvas.addEventListener("mousemove", (event) => {
+        if (drawing) {
+        currentStroke.push({ x: event.offsetX, y: event.offsetY }); 
 
-const clearButton = document.createElement("button");
-clearButton.innerText = "Clear";
-appContainer.appendChild(clearButton); 
+        const drawingChangedEvent = new Event("drawing-changed");
+        canvas.dispatchEvent(drawingChangedEvent);
+        }
+    });
 
-clearButton.addEventListener("click", () => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-});
+
+    canvas.addEventListener("mouseup", () => {
+        if (drawing) {
+        strokes.push(currentStroke);
+        drawing = false;
+        }
+    });
+
+    canvas.addEventListener("drawing-changed", () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        strokes.forEach((stroke) => {
+        if (stroke.length > 0) {
+            ctx.beginPath();
+            ctx.moveTo(stroke[0].x, stroke[0].y);
+            stroke.forEach((point) => {
+            ctx.lineTo(point.x, point.y);
+            });
+            ctx.stroke();
+            ctx.closePath();
+        }
+        });
+
+        if (currentStroke.length > 0) {
+        ctx.beginPath();
+        ctx.moveTo(currentStroke[0].x, currentStroke[0].y);
+        currentStroke.forEach((point) => {
+            ctx.lineTo(point.x, point.y);
+        });
+        ctx.stroke();
+        ctx.closePath();
+        }
+    });
+
+    const clearButton = document.createElement("button");
+    clearButton.innerText = "Clear";
+    appContainer.appendChild(clearButton);
+
+    clearButton.addEventListener("click", () => {
+        strokes = [];
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+} else {
+    console.error("Could not get 2D context for the canvas.");
+}
