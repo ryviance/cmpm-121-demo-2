@@ -1,8 +1,9 @@
 import "./style.css";
+import { MarkerLine } from './MarkerLine.ts'; 
 
 const appContainer = document.createElement("div");
 const appDiv = document.getElementById("app") as HTMLElement;
-appContainer.id = "appContainer"; 
+appContainer.id = "appContainer";
 
 appDiv.appendChild(appContainer);
 
@@ -20,97 +21,84 @@ const ctx = canvas.getContext("2d");
 
 if (ctx) {
     let drawing = false;
-    let strokes: Array<Array<{ x: number; y: number }>> = []; 
-    let redoStack: Array<Array<{ x: number; y: number }>> = [];
-    let currentStroke: Array<{ x: number; y: number }> = []; 
+    let strokes: Array<MarkerLine> = []; // Holds MarkerLine objects
+    let redoStack: Array<MarkerLine> = [];
+    let currentStroke: MarkerLine | null = null;
 
+    // Makes a new MarkerLine when the user starts drawing
     canvas.addEventListener("mousedown", (event) => {
         drawing = true;
-        currentStroke = [{ x: event.offsetX, y: event.offsetY }]; 
+        currentStroke = new MarkerLine({ x: event.offsetX, y: event.offsetY });
     });
 
+    // Add points to the MarkerLine as the user drags the mouse
     canvas.addEventListener("mousemove", (event) => {
-        if (drawing) {
-            currentStroke.push({ x: event.offsetX, y: event.offsetY }); 
+        if (drawing && currentStroke) {
+            currentStroke.drag(event.offsetX, event.offsetY);
 
             const drawingChangedEvent = new Event("drawing-changed");
             canvas.dispatchEvent(drawingChangedEvent);
         }
     });
 
+    // Save the MarkerLine when the user releases the mouse
     canvas.addEventListener("mouseup", () => {
-        if (drawing) {
-            if (currentStroke.length > 0) {
-                strokes.push(currentStroke); // Save the current stroke
-                currentStroke = []; // Clear current stroke for the next drawing
-            }
-            drawing = false; // Stop drawing
+        if (drawing && currentStroke) {
+            strokes.push(currentStroke);
+            currentStroke = null;
+            drawing = false;
 
-            // Dispatch the drawing-changed event after saving the stroke
             const drawingChangedEvent = new Event("drawing-changed");
             canvas.dispatchEvent(drawingChangedEvent);
         }
     });
 
+    // Redraw all MarkerLine objects on the canvas
     canvas.addEventListener("drawing-changed", () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         strokes.forEach((stroke) => {
-            if (stroke.length > 0) {
-                ctx.beginPath();
-                ctx.moveTo(stroke[0].x, stroke[0].y);
-                stroke.forEach((point) => {
-                    ctx.lineTo(point.x, point.y);
-                });
-                ctx.stroke();
-                ctx.closePath();
-            }
+            stroke.display(ctx); // Use the display method to draw the line
         });
 
-        if (currentStroke.length > 0) {
-            ctx.beginPath();
-            ctx.moveTo(currentStroke[0].x, currentStroke[0].y);
-            currentStroke.forEach((point) => {
-                ctx.lineTo(point.x, point.y);
-            });
-            ctx.stroke();
-            ctx.closePath();
+        if (currentStroke) {
+            currentStroke.display(ctx); // Draw the current line if it's being drawn
         }
     });
 
-    // Button container
+    
     const buttonContainer = document.createElement("div");
     buttonContainer.id = "buttonContainer";
     appContainer.appendChild(buttonContainer);
 
-    // UNDO BUTTON
     const undoButton = document.createElement("button");
     undoButton.innerText = "Undo";
     buttonContainer.appendChild(undoButton);
 
+    // Undo button
     undoButton.addEventListener("click", () => {
         if (strokes.length > 0) {
-            const lastStroke = strokes.pop(); // Pop top of undo stack when button clicked
+            const lastStroke = strokes.pop();
             if (lastStroke) {
-                redoStack.push(lastStroke); 
+                redoStack.push(lastStroke);
                 const drawingChangedEvent = new Event("drawing-changed");
-                canvas.dispatchEvent(drawingChangedEvent); 
+                canvas.dispatchEvent(drawingChangedEvent);
             }
         }
     });
 
-    // REDO BUTTON
+    // 
     const redoButton = document.createElement("button");
     redoButton.innerText = "Redo";
-    buttonContainer.appendChild(redoButton); // Add to redo stack when action is done
+    buttonContainer.appendChild(redoButton);
 
     redoButton.addEventListener("click", () => {
         if (redoStack.length > 0) {
             const redoStroke = redoStack.pop();
             if (redoStroke) {
-                strokes.push(redoStroke); 
+                strokes.push(redoStroke);
                 const drawingChangedEvent = new Event("drawing-changed");
-                canvas.dispatchEvent(drawingChangedEvent); 
+                canvas.dispatchEvent(drawingChangedEvent);
             }
         }
     });
@@ -125,5 +113,5 @@ if (ctx) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     });
 } else {
-    console.error("Could not get 2D context for the canvas.");
+    console.error("Could not get 2D context for the canvas."); // If I don't include this it throws an error
 }
