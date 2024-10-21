@@ -21,15 +21,15 @@ const ctx = canvas.getContext("2d");
 
 if (ctx) {
     let drawing = false;
-    let strokes: Array<MarkerLine> = []; // Holds MarkerLine objects
+    let strokes: Array<MarkerLine> = []; 
     let redoStack: Array<MarkerLine> = [];
     let currentStroke: MarkerLine | null = null;
 
     // Makes a new MarkerLine when the user starts drawing
     canvas.addEventListener("mousedown", (event) => {
         drawing = true;
-        currentStroke = new MarkerLine({ x: event.offsetX, y: event.offsetY });
-    });
+        currentStroke = new MarkerLine(event.offsetX, event.offsetY, selectedThickness); // Pass thickness
+    });    
 
     // Add points to the MarkerLine as the user drags the mouse
     canvas.addEventListener("mousemove", (event) => {
@@ -87,7 +87,7 @@ if (ctx) {
         }
     });
 
-    // 
+    // Redo button
     const redoButton = document.createElement("button");
     redoButton.innerText = "Redo";
     buttonContainer.appendChild(redoButton);
@@ -112,6 +112,29 @@ if (ctx) {
         redoStack = [];
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     });
+
+    // Create "Thin" button
+    const thinButton = document.createElement("button");
+    thinButton.innerText = "Thin Marker";
+    buttonContainer.appendChild(thinButton);
+
+    // Create "Thick" button
+    const thickButton = document.createElement("button");
+    thickButton.innerText = "Thick Marker";
+    buttonContainer.appendChild(thickButton);
+
+    // Variable to store the selected thickness
+    let selectedThickness = 1; 
+
+    // Event listeners for buttons
+    thinButton.addEventListener("click", () => {
+        selectedThickness = 1; // Thin marker
+    });
+
+    thickButton.addEventListener("click", () => {
+        selectedThickness = 5; // Thick marker
+    });
+
 } else {
     console.error("Could not get 2D context for the canvas."); // If I don't include this it throws an error
 }
