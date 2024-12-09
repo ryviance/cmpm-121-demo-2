@@ -167,6 +167,7 @@ class Sketchpad {
     this.createActionButtons(buttonContainer);
     this.createStickerButtons(buttonContainer);
     this.createMarkerButtons(buttonContainer);
+    this.createExportButton(buttonContainer); // Add Export button
   }
 
   private createButtonContainer(container: HTMLElement): HTMLElement {
@@ -212,6 +213,10 @@ class Sketchpad {
     container.appendChild(button);
   }
 
+  private createExportButton(container: HTMLElement) {
+    this.createButton(container, "Export", () => this.exportCanvas());
+  }
+
   private undo() {
     if (this.actions.length > 0) {
       const action = this.actions.pop()!;
@@ -240,6 +245,39 @@ class Sketchpad {
 
   private selectSticker(sticker: string) {
     this.selectedSticker = sticker;
+  }
+
+  private exportCanvas() {
+    const exportCanvas = document.createElement("canvas");
+    exportCanvas.width = 1024;
+    exportCanvas.height = 1024;
+    const exportCtx = exportCanvas.getContext("2d");
+
+    if (!exportCtx) return;
+
+    // Scale to make the drawing fit the new canvas size
+    exportCtx.scale(4, 4); // Scale by 4x in both x and y direction
+
+    // Redraw the actions on the new canvas
+    this.actions.forEach((action) => this.drawActionOnExport(action, exportCtx));
+
+    // Create the PNG image and trigger download
+    exportCanvas.toBlob((blob) => {
+      if (blob) {
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "sketchpad.png";
+        link.click();
+      }
+    });
+  }
+
+  private drawActionOnExport(action: Action, ctx: CanvasRenderingContext2D) {
+    if (action.type === "stroke") {
+      (action.data as MarkerLine).display(ctx);
+    } else if (action.type === "sticker") {
+      (action.data as Sticker).display(ctx);
+    }
   }
 }
 
