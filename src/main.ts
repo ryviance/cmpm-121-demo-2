@@ -23,6 +23,7 @@ class Sketchpad {
   private toolPreview: ToolPreview | null;
   private selectedThickness = 1;
   private selectedSticker: string | null = null;
+  private selectedColor: string = "black"; // Default color
   private stickers: string[] = ["😊", "🌟", "👍"];
   private actions: Action[] = [];
   private redoStack: Action[] = [];
@@ -95,8 +96,8 @@ class Sketchpad {
 
   private startDrawing(x: number, y: number) {
     this.drawing = true;
-    this.currentStroke = new MarkerLine(x, y, this.selectedThickness);
-  }
+    this.currentStroke = new MarkerLine(x, y, this.selectedThickness, this.selectedColor); // Pass selectedColor here
+  }  
 
   private placeSticker(x: number, y: number) {
     const sticker = new Sticker(x, y, this.selectedSticker!);
@@ -123,7 +124,7 @@ class Sketchpad {
     const previewRadius = this.selectedThickness === 1 ? 2 : 4; // Adjusted sizes
     this.ctx.beginPath();
     this.ctx.arc(x, y, previewRadius, 0, Math.PI * 2);
-    this.ctx.fillStyle = "black"; // Solid black preview
+    this.ctx.fillStyle = this.selectedColor; // Use the selected color
     this.ctx.fill();
     this.ctx.closePath();
   }
@@ -168,6 +169,7 @@ class Sketchpad {
     this.createActionButtons(buttonContainer);
     this.createStickerButtons(buttonContainer);
     this.createMarkerButtons(buttonContainer);
+    this.createColorPicker(buttonContainer); // Added color picker
     this.createButton(buttonContainer, "Export", () => this.exportCanvas());
     this.createAddCustomStickerButton(buttonContainer);
   }
@@ -202,6 +204,17 @@ class Sketchpad {
       "Thick Marker",
       () => (this.selectedThickness = 5),
     );
+  }
+
+  private createColorPicker(container: HTMLElement) {
+    const input = document.createElement("input");
+    input.type = "color";
+    input.value = "#000000"; // Default to black
+    input.addEventListener("input", (e) => {
+      const color = (e.target as HTMLInputElement).value;
+      this.selectedColor = color;
+    });
+    container.appendChild(input);
   }
 
   private createAddCustomStickerButton(container: HTMLElement) {
