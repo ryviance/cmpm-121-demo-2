@@ -1,3 +1,3 @@
-This is the starter code project for the `Demo 2` project in CMPM 121, Game
-Development Patterns, at UC Santa Cruz (fall quarter, 2024). Students should
-incrementally modify this project, tracking their progress with git.
+Basic sketchpad web application with undo/redo, thin and thick lines.
+
+![image](https://github.com/user-attachments/assets/85c3ac29-21ac-492a-8f63-9cd672c1971b)
