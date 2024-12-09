@@ -23,6 +23,7 @@ class Sketchpad {
   private toolPreview: ToolPreview | null;
   private selectedThickness = 1;
   private selectedSticker: string | null = null;
+  private stickers: string[] = ["😊", "🌟", "👍"];
   private actions: Action[] = [];
   private redoStack: Action[] = [];
   private currentStroke: MarkerLine | null = null;
@@ -167,7 +168,8 @@ class Sketchpad {
     this.createActionButtons(buttonContainer);
     this.createStickerButtons(buttonContainer);
     this.createMarkerButtons(buttonContainer);
-    this.createExportButton(buttonContainer); // Add Export button
+    this.createButton(buttonContainer, "Export", () => this.exportCanvas());
+    this.createAddCustomStickerButton(buttonContainer);
   }
 
   private createButtonContainer(container: HTMLElement): HTMLElement {
@@ -184,8 +186,8 @@ class Sketchpad {
   }
 
   private createStickerButtons(container: HTMLElement) {
-    ["😊", "🌟", "👍"].forEach((sticker) => {
-      this.createButton(container, sticker, () => this.selectSticker(sticker));
+    this.stickers.forEach((sticker) => {
+      this.createButton(container, sticker, () => this.selectSticker(sticker), "stickerButton");
     });
   }
 
@@ -202,19 +204,40 @@ class Sketchpad {
     );
   }
 
+  private createAddCustomStickerButton(container: HTMLElement) {
+    this.createButton(container, "Add Custom Sticker", () => this.addCustomSticker());
+  }
+
   private createButton(
     container: HTMLElement,
     label: string,
     onClick: () => void,
+    className: string = ""
   ) {
     const button = document.createElement("button");
     button.innerText = label;
     button.addEventListener("click", onClick);
+    if (className) button.classList.add(className);
     container.appendChild(button);
   }
 
-  private createExportButton(container: HTMLElement) {
-    this.createButton(container, "Export", () => this.exportCanvas());
+  private addCustomSticker() {
+    const customSticker = prompt("Enter a custom sticker emoji:");
+    if (customSticker && customSticker.trim() !== "") {
+      this.stickers.push(customSticker.trim());
+      this.updateStickerButtons(); // Update the sticker buttons immediately
+    }
+  }
+
+  private updateStickerButtons() {
+    const buttonContainer = document.getElementById("buttonContainer") as HTMLElement;
+    const stickerButtons = buttonContainer.querySelectorAll(".stickerButton");
+    stickerButtons.forEach((button) => button.remove());
+
+    // Recreate sticker buttons based on the updated stickers array
+    this.stickers.forEach((sticker) => {
+      this.createButton(buttonContainer, sticker, () => this.selectSticker(sticker), "stickerButton");
+    });
   }
 
   private undo() {

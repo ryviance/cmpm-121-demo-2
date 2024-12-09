@@ -11,7 +11,7 @@ export class Sticker {
 
   // Method to display the sticker
   display(ctx: CanvasRenderingContext2D) {
-    const size = 30; // You can change the size of the sticker if needed
+    const size = 30; // Can change the size of the sticker if needed
     ctx.font = `${size}px Arial`;
     ctx.fillText(this.emoji, this.x - size / 2, this.y + size / 2);
   }
