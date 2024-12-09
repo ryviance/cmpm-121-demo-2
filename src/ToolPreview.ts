@@ -1,7 +1,7 @@
 export class ToolPreview {
-    private thickness: number;
-    private x: number;
-    private y: number;
+    public thickness: number;
+    public x: number;
+    public y: number;
 
     constructor(thickness: number, x: number, y: number) {
         this.thickness = thickness;
