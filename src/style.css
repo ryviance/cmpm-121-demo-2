@@ -104,3 +104,15 @@ canvas#myCanvas {
   border-radius: 15px;
   box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.3);
 }
+
+input[type="color"] {
+  border: 2px solid #1a1a1a;  /* Set the border color to #242424 */
+  padding: 2px;  /* Add padding for better appearance */
+  border-radius: 4px;  /* Optional: rounded corners */
+  background-color: #1a1a1a;  /* Ensure the background is consistent */
+  cursor: pointer;  /* Ensure the color input shows as a clickable element */
+}
+
+input[type="color"]:focus {
+  border-color: #1a1a1a;  /* Ensures the border remains the same when focused */
+}
